@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from "react";
+import { TMDB_API_KEY, TMDB_BASE_URL, TMDB_IMAGE_URL, FAVORITES_KEY } from '../config';
+import type { Movie } from '../types/movie';
+
 
 export default function MovieSearch() {
     const [query, setQuery] = useState('');
-    const [results, setResults] = useState([]); // for search results
-    const [favorites, setFavorites] = useState<any[]>([]); // gets populated with favorited movies
+    const [results, setResults] = useState<Movie[]>([]); // for search results
+    const [favorites, setFavorites] = useState<Movie[]>([]); // gets populated with favorited movies
     const isFirstLoad = useRef(true);
-
-    const apiKey = import.meta.env.VITE_TMDB_API_KEY;
 
     // Load saved favorites from localStorage
     useEffect(() => {
         console.log('💾 Loading favorites from localStorage...');
-        const saved = localStorage.getItem('favoriteMovies');
+        const saved = localStorage.getItem(FAVORITES_KEY);
         if (saved) {
             console.log('✅ Loaded:', JSON.parse(saved));
             setFavorites(JSON.parse(saved));
@@ -26,24 +27,33 @@ export default function MovieSearch() {
             return; // skip first run
         }
         console.log('📦 Saving to localStorage:', favorites);
-        localStorage.setItem('favoriteMovies', JSON.stringify(favorites));
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
     }, [favorites]);
 
 
     const searchMovies = async () => {
         if (!query.trim()) return;
         const res = await fetch(
-            `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(query)}`
+            `${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`
         );
         const data = await res.json();
-        console.log(data);
-        setResults(data.results);
+        const sorted = data.results.sort(
+            (a: Movie, b: Movie) => (b.popularity ?? 0) - (a.popularity ?? 0)
+        );
+        setResults(sorted);
     };
 
-    const addToFavorites = (movie: any) => {
+    const addToFavorites = (movie: Movie) => {
+        const minimalMovie = {
+            id: movie.id,
+            title: movie.title,
+            poster_path: movie.poster_path,
+            popularity: movie.popularity,
+        };
+
         const alreadyExists = favorites.find((fav) => fav.id === movie.id);
         if (!alreadyExists) {
-            const updated = [...favorites, movie];
+            const updated = [...favorites, minimalMovie];
             setFavorites(updated);
             console.log('🌟 Added to favorites:', movie.title);
         }
@@ -70,35 +80,43 @@ export default function MovieSearch() {
                 </button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mb-12">
-                {results.map((movie: any) => (
-                <div key={movie.id} className="text-center">
-                    {movie.poster_path ? (
-                    <img
-                        src={`https://image.tmdb.org/t/p/w200${movie.poster_path}`}
-                        alt={movie.title}
-                        className="rounded shadow-md mx-auto"
-                    />
-                    ) : (
-                    <div className="h-[300px] bg-gray-700 rounded" />
-                    )}
-                    <p className="mt-2 text-sm">{movie.title}</p>
-                    <button
-                        onClick={() => addToFavorites(movie)}
-                        className="mt-1 text-xs text-pink-500 hover:underline"
-                    >
-                        Add to the FAV list
-                    </button>
-                </div>
-                ))}
+                {results.map((movie: Movie) => {
+                    const isFavorite = favorites.some((fav) => fav.id === movie.id);
+                    return (
+                            <div key={movie.id} className="text-center">
+                                {movie.poster_path ? (
+                                <img
+                                    src={`${TMDB_IMAGE_URL}${movie.poster_path}`}
+                                    alt={movie.title}
+                                    className="rounded shadow-md mx-auto"
+                                />
+                                ) : (
+                                <div className="h-[300px] bg-gray-700 rounded" />
+                                )}
+                                <p className="mt-2 text-sm">{movie.title}</p>
+                                <button
+                                    disabled={isFavorite}
+                                    onClick={() => addToFavorites(movie)}
+                                    className={`mt-1 text-xs ${
+                                        isFavorite
+                                        ? 'text-gray-400'
+                                        : 'text-pink-500 hover:underline'
+                                    }`}
+                                >
+                                    {isFavorite ? '✅ Added' : '💖 Add to Favorites'}
+                                </button>
+                            </div>
+                    )
+                })}
             </div>
 
             <h2 className="text-2xl font-bold mb-4"> Favorites </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                {favorites.map((movie:any) => (
+                {favorites.map((movie:Movie) => (
                     <div key={movie.id} className="text-center">
                         {movie.poster_path ? (
                             <img
-                                src={`https://image.tmdb.org/t/p/w200${movie.poster_path}`}
+                                src={`${TMDB_IMAGE_URL}${movie.poster_path}`}
                                 alt={movie.title}
                                 className="rounded shadow-md mx-auto"
                             />
