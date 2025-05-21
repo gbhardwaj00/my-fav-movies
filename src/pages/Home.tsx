@@ -10,7 +10,6 @@ export function Home() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Movie[]>([]);
   const [favorites, setFavorites] = useLocalStorage<Movie[]>('favoriteMovies', []);
-  // const isFirstLoad = useRef(true);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -20,31 +19,59 @@ export function Home() {
 
   const addFavorite = (movie: Movie) => {
     if (!favorites.some(f => f.id === movie.id)) {
-      const updated = [...favorites, movie];
-      setFavorites(updated);
+      setFavorites([...favorites, movie]);
     }
   };
 
   const removeFavorite = (id: number) => {
-    const updated = favorites.filter(f => f.id !== id);
-    setFavorites(updated);
+    setFavorites(favorites.filter(f => f.id !== id));
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center">My Favorite Movies</h1>
+    <div className="max-w-4xl mx-auto p-6">
+      {/* Hero */}
+      <header className="bg-gradient-to-r from-purple-700 to-indigo-600 p-6 rounded-lg mb-8 shadow-lg">
+        <h1 className="text-4xl font-extrabold text-white text-center">
+          🎬 My Favorite Movies
+        </h1>
+      </header>
 
+      {/* Search */}
       <SearchBar query={query} onChange={setQuery} onSearch={handleSearch} />
 
-      <MovieGrid
-        movies={results}
-        favorites={favorites}
-        onFavorite={addFavorite}
-        onRemove={removeFavorite}
-        isFavList={false}
-      />
+      {/* Search Results Section */}
+      <section className="mb-12">
+        <h2 className="text-2xl text-white font-bold mb-4 border-b border-gray-700 pb-2">
+          Search Results
+        </h2>
+        {results.length > 0 ? (
+          <MovieGrid
+            movies={results}
+            favorites={favorites}
+            onFavorite={addFavorite}
+            onRemove={() => {}}
+            isFavList={false}
+          />
+        ) : (
+          <p className="text-center text-gray-400">
+            No results yet—try searching for a movie above!
+          </p>
+        )}
+      </section>
 
-      <FavoritesList favorites={favorites} onRemove={removeFavorite} />
+      {/* Favorites Section */}
+      <section>
+        <h2 className="text-2xl text-white font-bold mb-4 border-b border-gray-700 pb-2">
+          Your Favorites
+        </h2>
+        {favorites.length > 0 ? (
+          <FavoritesList favorites={favorites} onRemove={removeFavorite} />
+        ) : (
+          <p className="text-center text-gray-400">
+            No favorites yet—click 💖 on a movie to add!
+          </p>
+        )}
+      </section>
     </div>
   );
 }
