@@ -1,12 +1,11 @@
 import './App.css'
-import MovieSearch from './components/MovieSearch'
+import { Home } from './pages/Home';
 
 function App() {
-
   return (
-    <>
-      <MovieSearch />
-    </>
+    <div className="bg-gray-900 text-white min-h-screen">
+      <Home />
+    </div>
   )
 }
 

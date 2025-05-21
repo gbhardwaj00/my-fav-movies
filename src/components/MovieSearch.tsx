@@ -58,6 +58,12 @@ export default function MovieSearch() {
             console.log('🌟 Added to favorites:', movie.title);
         }
     };
+
+    const removeFromFavorites = (id: number) => {
+        const updated = favorites.filter((f) => f.id !== id);
+        setFavorites(updated);
+    };
+
     
     return (
         <>
@@ -124,6 +130,12 @@ export default function MovieSearch() {
                             <div className="h-[300px] bg-gray-700 rounded" />
                         )}
                         <p className="mt-2 text-sm">{movie.title}</p>
+                        <button
+                            onClick={() => removeFromFavorites(movie.id)}
+                            className="mt-1 text-xs text-red-500 hover:underline"
+                        >
+                            ❌ Remove
+                        </button>
                     </div>
                 ))}
             </div>
