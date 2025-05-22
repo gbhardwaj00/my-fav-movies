@@ -9,7 +9,6 @@ interface FavoritesListProps {
 export function FavoritesList({ favorites, onRemove }: FavoritesListProps) {
   return (
     <>
-      <h2 className="text-3xl font-bold my-6 text-center">Favorites</h2>
       <MovieGrid
         movies={favorites}
         favorites={favorites}
